@@ -1,3 +1,5 @@
+import RV_32_consts::*;
+
 module RV32(
 input logic clk_i, 
 input logic rst_i, //Active-high reset
@@ -19,12 +21,12 @@ begin
 	end
 	else begin
 		case (instr_data_i[6:0])
-		0010011: $strobe("ADDI");	//ADDI
-		0010011: $strobe("ANDI");	//ANDI
-		0000011: $strobe("LW");		//LW
-		0100011: $strobe("SW");		//SW
+		OP_IMM: $strobe("OP_IMM");	//ADDI
+		LOAD: $strobe("LOAD");	//ANDI
+		STORE: $strobe("STORE");		//LW
 		default: $strobe("Unrecognised function"); 
-		endcase;	
+		endcase;
+		x0 <= x0+1;	
 	end
 end
 endmodule
