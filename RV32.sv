@@ -1,4 +1,5 @@
 import RV_32_consts::*;
+import tb_constants::MEMORY_SIZE;
 
 module RV32(
 input logic clk_i, 
@@ -18,10 +19,9 @@ always_ff@(posedge clk_i or negedge rst_i)
 begin
 	if (!rst_i) begin
 		x0 = 0;
-		instr_addr_o = 0;
+		instr_addr_o = MEMORY_SIZE-1;
 		mem_we_o = 0;
-		mem_addr_o = 0;
-		mem_data_o = 0;
+		mem_addr_o = MEMORY_SIZE/4;
 	end
 	else begin
 		case (instr_data_i[6:0])

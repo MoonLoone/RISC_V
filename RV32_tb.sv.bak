@@ -5,7 +5,7 @@ module RV32_tb;
 
 logic clk = 0;
 logic rst = 1;
-logic[31:0] instr_addr = 0;
+logic[31:0] instr_addr;
 logic[31:0] instr_data;
 logic mem_we;
 logic[31:0] mem_addr;
@@ -70,7 +70,7 @@ initial begin
 end
 
 initial begin
-instruction_transaction
+#40 instruction_transaction(rst,instr_addr);
 data_transaction(rst, mem_we, mem_addr, mem_data_out);
 
 end
@@ -85,9 +85,9 @@ input [31:0] mem_data_out
 if (!rst) begin
 	if (mem_addr < MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 	else begin
-		mem_data_in <= memory[mem_addr/4];
+		mem_data_in = memory[mem_addr/4];
 		if (mem_we) 
-			memory[mem_addr/4] <= mem_data_out;
+			memory[mem_addr/4] = mem_data_out;
 	end
 end 
 endtask
@@ -97,7 +97,8 @@ task instruction_transaction(
 input rst,
 input [31:0] instr_addr
 );
-	instr_data <= memory[instr_addr/4];
+begin
+	instr_data = memory[instr_addr/4];
 	if (!rst) begin
 		if (instr_addr < MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 		else begin
@@ -108,6 +109,7 @@ input [31:0] instr_addr
 					$strobe("Stopping simulation: incorrect result, please fix your code and try again!");
 		end
 	end
+end
 endtask
 
 endmodule
