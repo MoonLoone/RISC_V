@@ -1,7 +1,8 @@
 package tb_constants;
 localparam int MEMORY_SIZE = 32;
-localparam time CLK_PERIOD = 10;
-localparam logic[31:0] SIM_STOP_PC = 24;
+localparam int CLK_PERIOD = 50;
+localparam int RST_PERIOD = 2*CLK_PERIOD;
+localparam int SIM_STOP_PC = 25;
 localparam int MEM_CHECK_ADDR = 64;
-localparam logic[31:0] EXPECTED_RESULT = 49;
+localparam int EXPECTED_RESULT = 49;
 endpackage

@@ -18,20 +18,33 @@ logic[31:0] x3;
 always_ff@(posedge clk_i or negedge rst_i)
 begin
 	if (!rst_i) begin
-		x0 = 0;
+		x0 = 1;
 		instr_addr_o = MEMORY_SIZE-1;
 		mem_we_o = 0;
 		mem_addr_o = MEMORY_SIZE/4;
-		mem_data_o = 0;
 	end
 	else begin
 		case (instr_data_i[6:0])
-		OP_IMM: $strobe("OP_IMM");	//ADDI
-		LOAD: $strobe("LOAD");	//ANDI
-		STORE: $strobe("STORE");		//LW
-		default: $strobe("Unrecognised function"); 
-		endcase;
-		x0 <= x0+1;	
+		OP_IMM:
+			begin
+				$strobe("OP_IMM");
+				x0 <= x0+1;
+				instr_addr_o <= MEMORY_SIZE-x0-1;	
+			end
+		LOAD: 
+			begin
+				$strobe("LOAD");	//ANDI
+				x0 <= x0+1;
+				x1 <= mem_data_i;
+				instr_addr_o <= MEMORY_SIZE-x0-1;	
+			end
+		STORE: 
+			begin
+				$strobe("STORE");	//STORE
+				x0 <= x0+1;
+				instr_addr_o <= MEMORY_SIZE-x0-1;	
+			end
+		endcase;	
 	end
 end
 endmodule

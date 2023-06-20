@@ -19,7 +19,7 @@ logic[MEMORY_SIZE-1:0][31:0] memory = {
     'h03f1f193,    // andi x3, x3, 63
     'h04302023,    // sw   x3, 64(x0)
     'h00000013,    // addi x0, x0, 0
-    'h00000000,    // <<execution will end here, PC=24 (hex 18)>>
+    'h00000000,    // <<execution will end here, PC=25 (hex 18)>>
     'h00000000,
     'h00000000,
     'h00000000,
@@ -62,17 +62,17 @@ RV32 entity(
 initial forever #(CLK_PERIOD/2) clk = ~clk;
 
 initial begin
+#(RST_PERIOD) rst = ~rst;
 #10 rst = ~rst;
-#10 rst = ~rst;
-#1000 rst = ~rst;
-#10 rst = ~rst;
-#1000 $stop;
+#10000 $stop;
 end
 
 initial begin
-#40 instruction_transaction(rst,instr_addr);
+forever 
+@(clk) begin
+instruction_transaction(rst,instr_addr);
 data_transaction(rst, mem_we, mem_addr, mem_data_out);
-
+end
 end
 
 //Read and write data from memory bus
@@ -83,11 +83,11 @@ input [31:0] mem_addr,
 input [31:0] mem_data_out
 );
 if (!rst) begin
-	if (mem_addr < MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
+	if (mem_addr > MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 	else begin
-		mem_data_in = memory[mem_addr/4];
+		mem_data_in <= memory[mem_addr/4];
 		if (mem_we) 
-			memory[mem_addr/4] = mem_data_out;
+			memory[mem_addr/4] <= mem_data_out;
 	end
 end 
 endtask
@@ -98,15 +98,17 @@ input rst,
 input [31:0] instr_addr
 );
 begin
-	instr_data = memory[instr_addr/4];
-	if (!rst) begin
-		if (instr_addr < MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
+	instr_data = memory[instr_addr];
+	if (rst) begin
+		if (instr_addr > MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 		else begin
-			if (instr_addr == SIM_STOP_PC) 
+			if (instr_addr == SIM_STOP_PC) begin 
 				if (memory[MEM_CHECK_ADDR/4] == EXPECTED_RESULT)
 					$strobe("Stopping simulation: correct result found!");
 				else 
 					$strobe("Stopping simulation: incorrect result, please fix your code and try again!");
+				#(CLK_PERIOD*2) $stop;
+			end
 		end
 	end
 end
