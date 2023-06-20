@@ -11,40 +11,55 @@ output logic mem_we_o, //Active-high memmory write
 output logic[31:0] mem_addr_o, //read memory address
 output logic[31:0] mem_data_o //write memory data
 );
-logic[31:0] x0; //instruction counter
-logic[31:0] x1;
-logic[31:0] x2;
-logic[31:0] x3;
+
+logic [MEMORY_SIZE/2-1:0] cmd_cnt; //command counter
+logic[31:0] x[31:0]; //registers
+//x[0] = 0; //first register is interconnected to ground
+
 always_ff@(posedge clk_i or negedge rst_i)
 begin
 	if (!rst_i) begin
-		x0 <= 1;
+		for (int i=0; i<REGISTERS_COUNT; i=i+1) x[i] <= 0;
+		cmd_cnt <= 1;
 		instr_addr_o <= MEMORY_SIZE-1;
 		mem_we_o <= 0;
-		mem_addr_o <= MEMORY_SIZE/4;
+		mem_addr_o <= (MEMORY_SIZE-1)/2;
 	end
-	else begin
+	else if(instr_data_i >= 0)
+	begin
+		mem_we_o <= 0;
 		case (instr_data_i[6:0])
 		OP_IMM:
-			begin
-				$strobe("OP_IMM");
-				x0 <= x0+1;
-				instr_addr_o <= MEMORY_SIZE-x0-1;	
-			end
+			case (instr_data_i[14:12])
+				ADDI:
+					begin
+						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
+						x[instr_data_i[11:7]] = x[instr_data_i[19:15]]+instr_data_i[31:20];
+						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
+					end
+				ANDI:
+					begin
+						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
+						x[instr_data_i[11:7]] = x[instr_data_i[19:15]]&instr_data_i[31:20];
+						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
+					end
+				default: $strobe("Undefined OP_IMM");
+			endcase
 		LOAD: 
 			begin
-				$strobe("LOAD");	//ANDI
-				x0 <= x0+1;
-				x1 <= mem_data_i;
-				instr_addr_o <= MEMORY_SIZE-x0-1;	
+				$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
+				x[instr_data_i[11:7]] = mem_data_i;
+				$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
 			end
 		STORE: 
 			begin
-				$strobe("STORE");	//STORE
-				x0 <= x0+1;
-				instr_addr_o <= MEMORY_SIZE-x0-1;	
+				mem_we_o <= 1;
+				mem_data_o <= x[instr_data_i[24:20]];
 			end
-		endcase;	
+		default: $strobe("Undefined command %b", instr_data_i[6:0]);
+		endcase;
+		cmd_cnt <= cmd_cnt+1;
+		instr_addr_o <= MEMORY_SIZE-cmd_cnt-1;		
 	end
 end
 endmodule
