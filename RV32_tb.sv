@@ -62,17 +62,16 @@ RV32 entity(
 initial forever #(CLK_PERIOD/2) clk = ~clk;
 
 initial begin
-#(RST_PERIOD) rst = ~rst;
-#10 rst = ~rst;
-#10000 $stop;
+    #(RST_PERIOD) rst = ~rst;
+    #10 rst = ~rst;
+    #10000 $stop;
 end
 
 initial begin
-forever 
-@(clk) begin
-instruction_transaction(rst,instr_addr);
-data_transaction(rst, mem_we, mem_addr, mem_data_out);
-end
+    forever @(clk) begin
+        instruction_transaction(rst,instr_addr);
+        data_transaction(rst, mem_we, mem_addr, mem_data_out);
+    end
 end
 
 //Read and write data from memory bus
@@ -83,7 +82,7 @@ input [31:0] mem_addr,
 input [31:0] mem_data_out
 );
 if (rst) begin
-	if (mem_addr > MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
+	if (mem_addr >= MEMORY_SIZE) $strobe("Data address is to large or undefined!");
 	else begin
 		mem_data_in <= memory[mem_addr];
 		if (mem_we) 
@@ -100,7 +99,7 @@ input [31:0] instr_addr
 begin
 	instr_data = memory[instr_addr];
 	if (rst) begin
-		if (instr_addr > MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
+		if (instr_addr >= MEMORY_SIZE) $strobe("Data address is to large or undefined!");
 		else begin
 			if (instr_addr == SIM_STOP_PC) begin 
 				if (memory[MEM_CHECK_ADDR] == EXPECTED_RESULT)

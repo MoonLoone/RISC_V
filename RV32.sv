@@ -14,7 +14,6 @@ output logic[31:0] mem_data_o //write memory data
 
 logic [MEMORY_SIZE/2-1:0] cmd_cnt; //command counter
 logic[31:0] x[31:0]; //registers
-//x[0] = 0; //first register is interconnected to ground
 
 always_ff@(posedge clk_i or negedge rst_i)
 begin
@@ -31,32 +30,17 @@ begin
 		case (instr_data_i[6:0])
 		OP_IMM:
 			case (instr_data_i[14:12])
-				ADDI:
-					begin
-						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-						x[instr_data_i[11:7]] = x[instr_data_i[19:15]]+instr_data_i[31:20];
-						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-					end
-				ANDI:
-					begin
-						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-						x[instr_data_i[11:7]] = x[instr_data_i[19:15]]&instr_data_i[31:20];
-						$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-					end
+				ADDI: x[instr_data_i[11:7]] = x[instr_data_i[19:15]] + instr_data_i[31:20];
+				ANDI: x[instr_data_i[11:7]] = x[instr_data_i[19:15]] & instr_data_i[31:20];
 				default: $strobe("Undefined OP_IMM");
 			endcase
-		LOAD: 
-			begin
-				$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-				x[instr_data_i[11:7]] = mem_data_i;
-				$strobe("x[%d] = %d",instr_data_i[11:7], x[instr_data_i[11:7]]);
-			end
+		LOAD: x[instr_data_i[11:7]] = mem_data_i;
 		STORE: 
 			begin
 				mem_we_o <= 1;
 				mem_data_o <= x[instr_data_i[24:20]];
 			end
-		default: $strobe("Undefined command %b", instr_data_i[6:0]);
+		default: $strobe("Undefined command for code %b", instr_data_i[6:0]);
 		endcase;
 		cmd_cnt <= cmd_cnt+1;
 		instr_addr_o <= MEMORY_SIZE-cmd_cnt-1;		
