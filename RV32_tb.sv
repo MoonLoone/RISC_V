@@ -82,11 +82,11 @@ input [31:0] mem_addr,
 input [31:0] mem_data_out
 );
 if (rst) begin
-	if (mem_addr >= MEMORY_SIZE) $strobe("Data address is to large or undefined!");
+	if (mem_addr >= MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 	else begin
-		mem_data_in <= memory[mem_addr];
+		mem_data_in <= memory[mem_addr/4];
 		if (mem_we) 
-			memory[mem_addr] <= mem_data_out;
+			memory[mem_addr/4] <= mem_data_out;
 	end
 end 
 endtask
@@ -97,12 +97,12 @@ input rst,
 input [31:0] instr_addr
 );
 begin
-	instr_data = memory[instr_addr];
+	instr_data = memory[instr_addr/4];
 	if (rst) begin
-		if (instr_addr >= MEMORY_SIZE) $strobe("Data address is to large or undefined!");
+		if (instr_addr > MEMORY_SIZE*4) $strobe("Data address is to large or undefined!");
 		else begin
-			if (instr_addr == SIM_STOP_PC) begin 
-				if (memory[MEM_CHECK_ADDR] == EXPECTED_RESULT)
+			if (instr_addr == SIM_STOP_PC-1) begin 
+				if (memory[MEM_CHECK_ADDR/4] == EXPECTED_RESULT)
 					$strobe("Stopping simulation: correct result found!");
 				else 
 					$strobe("Stopping simulation: incorrect result, please fix your code and try again!");

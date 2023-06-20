@@ -19,12 +19,12 @@ always_ff@(posedge clk_i or negedge rst_i)
 begin
 	if (!rst_i) begin
 		for (int i=0; i<REGISTERS_COUNT; i=i+1) x[i] <= 0;
-		cmd_cnt <= 1;
-		instr_addr_o <= MEMORY_SIZE-1;
+		cmd_cnt <= 4;
+		instr_addr_o <= MEMORY_SIZE*4-1;
 		mem_we_o <= 0;
-		mem_addr_o <= (MEMORY_SIZE-1)/2;
+		mem_addr_o <= (MEMORY_SIZE*4-1)/2;
 	end
-	else if(instr_data_i >= 0)
+	else if((instr_data_i >= 0) && (instr_addr_o < MEMORY_SIZE*4))
 	begin
 		mem_we_o <= 0;
 		case (instr_data_i[6:0])
@@ -42,8 +42,8 @@ begin
 			end
 		default: $strobe("Undefined command for code %b", instr_data_i[6:0]);
 		endcase;
-		cmd_cnt <= cmd_cnt+1;
-		instr_addr_o <= MEMORY_SIZE-cmd_cnt-1;		
+		cmd_cnt <= cmd_cnt+4;
+		instr_addr_o <= MEMORY_SIZE*4-cmd_cnt-1;		
 	end
 end
 endmodule
