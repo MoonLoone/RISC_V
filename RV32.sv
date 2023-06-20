@@ -13,7 +13,7 @@ output logic[31:0] mem_data_o //write memory data
 );
 
 logic [MEMORY_SIZE/2-1:0] cmd_cnt; //command counter
-logic[31:0] x[31:0]; //registers
+logic[31:0] x[REGISTERS_COUNT:0]; //registers
 
 always_ff@(posedge clk_i or negedge rst_i)
 begin
